@@ -1,0 +1,2 @@
+# MasBot
+IRC Bot (Python)
