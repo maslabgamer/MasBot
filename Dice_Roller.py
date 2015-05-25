@@ -6,6 +6,7 @@ from random import randint
 from array import array
 
 def parse(l):
+    error_message = "Invalid syntax. Correct syntax is: '.roll [number of dice]d[number of sides]' or '.roll [number of dice]d[number of sides] shadowrun' for Shadowrun rolls."
     try:
         dice = l.split('d', 1)
         second_param = " "
@@ -13,15 +14,13 @@ def parse(l):
             second_param = dice[1].split(' ')[1][:-2]
             dice[1] = "{0}\r\n".format(dice[1].split(' ')[0])
         message = roll(long(dice[0]), long(dice[1][:-2])) if 'shadowrun' not in second_param.lower() else shadowrun_roll(long(dice[0]), long(dice[1][:-2]))
-        return "Invalid syntax. Correct syntax is: .roll #d#" if len(dice) > 2 or long(dice[0]) < 1 else message
+        return error_message if len(dice) > 2 or long(dice[0]) < 1 else message
     except ValueError:
-        print "Value Error"
-        return "Invalid syntax. Correct syntax is: .roll #d#"
+        return error_message
 
 def roll(times, sides):
     rolled = array('i', (randint(1, sides) for i in range(0, times))).tolist()
-    x, y = sum(rolled), rolled
-    return "Rolled {0}. {1}".format(x, y)
+    return "Rolled {0}. {1}".format(sum(rolled), rolled)
     
 def shadowrun_roll(times, needed):
     rolled = array('i', (randint(1, 6) for i in range(0, times))).tolist()
