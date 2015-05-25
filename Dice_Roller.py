@@ -20,7 +20,7 @@ def parse(l):
 
 def roll(times, sides):
     rolled = array('i', (randint(1, sides) for i in range(0, times))).tolist()
-    return "Rolled {0}. {1}".format(sum(rolled), rolled)
+    return "Rolled {0} total. Individual dice: {1}".format(sum(rolled), rolled)
     
 def shadowrun_roll(times, needed):
     rolled = array('i', (randint(1, 6) for i in range(0, times))).tolist()
@@ -35,5 +35,5 @@ def shadowrun_roll(times, needed):
         message += "Glitch. "
     elif hits >= needed + 4 and needed > 0:
         message += "Critical Success! "
-    message += "Rolled {0} hits. {1}".format(hits, rolled) 
+    message += "Rolled {0} hits. Individual rolls: {1}".format(hits, rolled) 
     return message
