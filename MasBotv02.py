@@ -27,7 +27,8 @@ class IRC_Server:
         self.lFirstWord = ""
         self.UserList = {}
         self.Commands = {'roll': Dice_Roller.parse, 'test': Test_Module.call, 'tell': self.store_message}
-        self.response = {'belgium': [1, 'gasps!'], 'kicks masbot': [2, 'Rude.'], 'boops masbot': [1, 'boops back!']}
+        self.response = {'belgium': [1, 'gasps!'], 'kicks masbot': [2, 'Rude.'], 'boops masbot': [1, 'boops back!'],
+				'thank you, masbot': [3, 'You\'re welcome!']}
         
     def resCom(self):
         self.Commands = {'roll': Dice_Roller.parse, 'test': Test_Module.call, 'tell': self.store_message}
@@ -109,7 +110,14 @@ class IRC_Server:
         
     def choose_response(self):
         for key in self.response:
-            if key in self.lText.lower(): self.send_message('\x01ACTION {0}\x01'.format(self.response[key][1])) if self.response[key][0] == 1 else self.send_message(self.response[key][1])
+            if key in self.lText.lower(): 
+                if self.response[key][0] == 1:
+				self.send_message('\x01ACTION {0}\x01'.format(self.response[key][1]))  
+                elif self.response[key][0] == 3:
+                    if self.lFirstWord.lower() in key[:7]:
+                        self.send_message(self.response[key][1])
+                else:
+                    self.send_message(self.response[key][1])
                     
     def running(self):
         connected = True
