@@ -85,7 +85,7 @@ class IRCServer:
             self.lText = l[2]
             if '#' in l[1]:
                 self.irc_current_channel = '#{0}'.format(l[1].split('#')[1])
-        self.lFirstWord = self.lText.split(' ')[0]
+        self.lFirstWord = self.lText.strip().split(' ')[0]
         if self.lFirstWord[0] == '.':
             self.command = self.lFirstWord[1:]
         else:
