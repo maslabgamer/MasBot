@@ -6,5 +6,5 @@ Created on Sun Nov 30 17:10:33 2014
 """
 
 
-def call():
-    return "Test change."
+def call(l):
+    return "Test reload."

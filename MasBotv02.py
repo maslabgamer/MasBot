@@ -141,9 +141,7 @@ class IRCServer:
 
     def affirm(self):
         db_cursor.execute(count_affirmations)
-        count = db_cursor.fetchone()[0]
-        count = randint(1, count)
-        print "Count is {0}".format(count)
+        count = randint(1, db_cursor.fetchone()[0])
         db_cursor.execute(get_affirmation, (count,))
         for (idaffirmations, affirmations_text) in db_cursor:
             if "{USER}" in affirmations_text:
