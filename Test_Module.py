@@ -5,5 +5,6 @@ Created on Sun Nov 30 17:10:33 2014
 @author: Samuel
 """
 
-def call(l):
+
+def call():
     return "Test change."
