@@ -9,7 +9,6 @@ import socket
 import threading
 import sys
 from datetime import datetime
-from random import randint
 import mysql.connector
 import re
 import Dice_Roller
