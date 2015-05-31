@@ -11,14 +11,15 @@ import sys
 from datetime import datetime
 from random import randint
 import mysql.connector
+import re
 import Dice_Roller
 import Test_Module
 
 add_message = "INSERT INTO messages (userTo, userFrom, message, messageSent) VALUES (%s, %s, %s, %s)"
 select_message = "SELECT messageid, userTo, userFrom, message, messageSent FROM messages WHERE userTo=%s"
 delete_message = "DELETE FROM messages WHERE userTo=%s"
-count_affirmations = "SELECT COUNT(*) FROM affirmations"
-get_affirmation = "SELECT idaffirmations, affirmations_text FROM affirmations WHERE idaffirmations = %s"
+get_affirmation = "SELECT idaffirmations, affirmations_text FROM affirmations ORDER BY RAND() LIMIT 1"  #"SELECT idaffirmations, affirmations_text FROM affirmations WHERE idaffirmations = %s"
+add_affirmation = "INSERT INTO affirmations (affirmations_text) VALUES (%s)"
 
 
 class IRCServer:
@@ -40,7 +41,7 @@ class IRCServer:
         self.Commands = {'roll': Dice_Roller.parse, 'test': Test_Module.call, 'tell': self.store_message}
         self.response = {'belgium': [1, 'gasps!'], 'kicks masbot': [2, 'Rude.'], 'boops masbot': [1, 'boops back!'],
                          'thank you, masbot': [3, 'You\'re welcome!']}
-        self.MasBot = {'reaffirm me': self.affirm}
+        self.MasBot = {'reaffirm me': self.affirm, 'add affirmation: ': self.add_affirmation}
 
     def res_com(self):
         self.Commands = {'roll': Dice_Roller.parse, 'test': Test_Module.call, 'tell': self.store_message}
@@ -97,11 +98,6 @@ class IRCServer:
         self.res_com()
         self.send_message('Module reloaded.')
 
-    def store_message(self, l):
-        db_cursor.execute(add_message, (l.split(' ', 1)[0], self.lName, l.split(' ', 1)[1][:-2], datetime.now()))
-        messagesDB.commit()
-        self.send_message("I'll let {0} know.".format(l.split(' ', 1)[0]))
-
     @staticmethod
     def parse_time(t):
         t = str(t).split('.')[0].split(':')
@@ -139,14 +135,31 @@ class IRCServer:
                 else:
                     self.send_message(self.response[key][1])
 
+    def store_message(self, l):
+        db_cursor.execute(add_message, (l.split(' ', 1)[0], self.lName, l.split(' ', 1)[1][:-2], datetime.now()))
+        messagesDB.commit()
+        self.send_message("I'll let {0} know.".format(l.split(' ', 1)[0]))
+
     def affirm(self):
-        db_cursor.execute(count_affirmations)
-        count = randint(1, db_cursor.fetchone()[0])
-        db_cursor.execute(get_affirmation, (count,))
-        for (idaffirmations, affirmations_text) in db_cursor:
-            if "{USER}" in affirmations_text:
-                affirmations_text = affirmations_text.replace("{USER}", self.lName)
-            self.send_message('{0}'.format(affirmations_text))
+        db_cursor.execute(get_affirmation)
+        m = str(db_cursor.fetchone()[1])
+        if "{USER}" in m:
+            m = m.replace("{USER}", self.lName)
+        self.send_message('{0}'.format(m))
+
+    def add_affirmation(self):
+        m = re.search('add affirmation: "(.+?)"', self.lText)
+        if m:
+            text = str(m.group(1))
+        else:
+            text = None
+            print "Nothing found."
+        try:
+            db_cursor.execute(add_affirmation, (text,))
+            messagesDB.commit()
+            self.send_message("New affirmation stored: {0}".format(text))
+        except NameError:
+            print "Text to enter was null."
 
     def running(self):
         connected = True
