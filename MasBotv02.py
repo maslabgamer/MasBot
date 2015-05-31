@@ -17,7 +17,7 @@ import Test_Module
 add_message = "INSERT INTO messages (userTo, userFrom, message, messageSent) VALUES (%s, %s, %s, %s)"
 select_message = "SELECT messageid, userTo, userFrom, message, messageSent FROM messages WHERE userTo=%s"
 delete_message = "DELETE FROM messages WHERE userTo=%s"
-get_affirmation = "SELECT idaffirmations, affirmations_text FROM affirmations ORDER BY RAND() LIMIT 1"  #"SELECT idaffirmations, affirmations_text FROM affirmations WHERE idaffirmations = %s"
+get_affirmation = "SELECT idaffirmations, affirmations_text FROM affirmations ORDER BY RAND() LIMIT 1"
 add_affirmation = "INSERT INTO affirmations (affirmations_text) VALUES (%s)"
 
 
