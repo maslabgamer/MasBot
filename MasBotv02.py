@@ -64,18 +64,22 @@ class IRCServer:
         if message is not None:
             self.irc_sock.send('PRIVMSG {0} :{1}\r\n'.format(self.irc_current_channel, message))
 
-    def get_userlist(self):
-        self.irc_sock.send(("NAMES {0} \r\n".format(self.irc_current_channel)).encode())
+    def get_userlist(self, c):
+        self.irc_sock.send(("NAMES {0} \r\n".format(c)).encode())
 
     def get_users(self, l):
+        c = ""
+        for chan in self.irc_channel:
+            if chan in l.lower():
+                c = chan
+        print "c is {0}".format(c)
         l = l.split('353')[1].split(':')[1].split(' ')
         for i, v in enumerate(l):
             v = v if v[0].isalpha() else v[1:]
             l[i] = v if '\r\n' not in v[-2:] else v[:-2]
         if 'MasBot' in l:
             l.remove('MasBot')
-        self.UserList[self.irc_current_channel] = l
-        print "Userlist is {0}".format(self.UserList)
+        self.UserList[c] = l
 
     def get_info(self, l):
         l = l.split(':', 2)
@@ -179,9 +183,13 @@ class IRCServer:
             elif '353' in line:
                 self.get_users(line)
             elif 'JOIN' in line or 'PART' in line:
-                self.get_userlist()
+                self.get_userlist(self.irc_current_channel)
             print ("{0}: {1}".format(self.lName, self.lText) if 'PRIVMSG' in line else line)
             self.choose_response()
+            print "Userlist is {0}".format(self.UserList)
+            if len(self.irc_channel) != len(self.UserList):
+                for c in self.irc_channel:
+                    self.get_userlist(c)
 
 
 HOST = "irc.sorcery.net"
@@ -190,7 +198,7 @@ NICK = "MasBot"
 IDENT = "masbot"
 REALNAME = "MaslabsBot"
 readbuffer = ""
-CHANLIST = ["#ucascadia"]
+CHANLIST = ["#ucascadia", "#masbottest"]
 OWNER = "Maslab"
 messagesDB = mysql.connector.connect(user='maslab', password='reallygood2468', host='127.0.0.1', port=3306,
                                      database='messageDB')
