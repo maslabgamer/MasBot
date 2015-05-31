@@ -186,7 +186,6 @@ class IRCServer:
                 self.get_userlist(self.irc_current_channel)
             print ("{0}: {1}".format(self.lName, self.lText) if 'PRIVMSG' in line else line)
             self.choose_response()
-            print "Userlist is {0}".format(self.UserList)
             if len(self.irc_channel) != len(self.UserList):
                 for c in self.irc_channel:
                     self.get_userlist(c)
@@ -198,7 +197,7 @@ NICK = "MasBot"
 IDENT = "masbot"
 REALNAME = "MaslabsBot"
 readbuffer = ""
-CHANLIST = ["#ucascadia", "#masbottest"]
+CHANLIST = ["#ucascadia"]
 OWNER = "Maslab"
 messagesDB = mysql.connector.connect(user='maslab', password='reallygood2468', host='127.0.0.1', port=3306,
                                      database='messageDB')
