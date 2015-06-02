@@ -13,6 +13,7 @@ import mysql.connector
 import re
 import Dice_Roller
 import Test_Module
+import Parse_Time
 
 add_message = "INSERT INTO messages (userTo, userFrom, message, messageSent) VALUES (%s, %s, %s, %s)"
 select_message = "SELECT messageid, userTo, userFrom, message, messageSent FROM messages WHERE userTo=%s"
@@ -101,29 +102,11 @@ class IRCServer:
         self.res_com()
         self.send_message('Module reloaded.')
 
-    @staticmethod
-    def parse_time(t):
-        t = str(t).split('.')[0].split(':')
-        time_m = ""
-        if ',' in t[0]:
-            days = t[0].split(',')
-            t[0] = days[1].strip()
-            if int(days[0].split(' ')[0]) > 0:
-                time_m += "{0} days, ".format(days)
-        for i, v in enumerate(t):
-            t[i] = int(v)
-        if t[0] > 0:
-            time_m += "{0} hours, ".format(t[0])
-        if t[1] > 0:
-            time_m += "{0} minutes, ".format(t[1])
-        if len(time_m) > 0:
-            time_m += "and "
-        return time_m + "{0} seconds ago.".format((t[2]))
-
     def message_check(self):
-        db_cursor.execute(select_message, (self.lName,), multi=True)
+        db_cursor.execute(select_message, (self.lName,))
         for (messageid, userTo, userFrom, message, messageSent) in db_cursor:
-            self.send_message('{0}: {1} said "{2}" {3}'.format(self.lName, userFrom, message, self.parse_time(datetime.now() - messageSent)))
+            print "Messageid is " + str(messageid)
+            self.send_message('{0}: {1} said "{2}" {3}'.format(self.lName, userFrom, message, Parse_Time.parse_time(datetime.now() - messageSent)))
         db_cursor.execute(delete_message, (self.lName,))
         messagesDB.commit()
 
