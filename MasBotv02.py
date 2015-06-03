@@ -13,7 +13,7 @@ import mysql.connector
 import re
 import Dice_Roller
 import Test_Module
-import Parse_Time
+import Bot_Functions
 
 add_message = "INSERT INTO messages (userTo, userFrom, message, messageSent) VALUES (%s, %s, %s, %s)"
 select_message = "SELECT messageid, userTo, userFrom, message, messageSent FROM messages WHERE userTo=%s"
@@ -30,7 +30,6 @@ class IRCServer:
         self.irc_channel = channel
         self.irc_current_channel = ""
         self.irc_sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.is_connected = False
         self.owner = OWNER
         self.command = ""
         self.param = ""
@@ -73,7 +72,6 @@ class IRCServer:
         for chan in self.irc_channel:
             if chan in l.lower():
                 c = chan
-        print "c is {0}".format(c)
         l = l.split('353')[1].split(':')[1].split(' ')
         for i, v in enumerate(l):
             v = v if v[0].isalpha() else v[1:]
@@ -91,10 +89,7 @@ class IRCServer:
             if '#' in l[1]:
                 self.irc_current_channel = '#{0}'.format(l[1].split('#')[1])
         self.lFirstWord = self.lText.strip().split(' ')[0]
-        if self.lFirstWord[0] == '.':
-            self.command = self.lFirstWord[1:]
-        else:
-            self.command = ""
+        self.command = self.lFirstWord[1:] if self.lFirstWord[0] == '.' else ""
 
     def rel(self, t):
         mod = sys.modules.get(t.split(' ')[1].rstrip())
@@ -105,8 +100,7 @@ class IRCServer:
     def message_check(self):
         db_cursor.execute(select_message, (self.lName,))
         for (messageid, userTo, userFrom, message, messageSent) in db_cursor:
-            print "Messageid is " + str(messageid)
-            self.send_message('{0}: {1} said "{2}" {3}'.format(self.lName, userFrom, message, Parse_Time.parse_time(datetime.now() - messageSent)))
+            self.send_message('{0}: {1} said "{2}" {3}'.format(self.lName, userFrom, message, Bot_Functions.parse_time(datetime.now() - messageSent)))
         db_cursor.execute(delete_message, (self.lName,))
         messagesDB.commit()
 
@@ -140,12 +134,10 @@ class IRCServer:
         else:
             text = None
             print "Nothing found."
-        try:
+        if text is not None:
             db_cursor.execute(add_affirmation, (text,))
             messagesDB.commit()
             self.send_message("New affirmation stored: {0}".format(text))
-        except NameError:
-            print "Text to enter was null."
 
     def running(self):
         connected = True
