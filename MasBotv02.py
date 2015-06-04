@@ -35,14 +35,15 @@ class IRCServer:
         self.lName = ""
         self.lText = ""
         self.lFirstWord = ""
+        self.do_work = False
         self.UserList = {}
-        self.Commands = {'roll': Dice_Roller.parse, 'test': Test_Module.call, 'tell': self.store_message}
+        self.Commands = {'roll': Dice_Roller.parse, 'test': Test_Module.call, 'tell': self.store_message, 'join': self.join_channel}
         self.response = {'belgium': [1, 'gasps!'], 'kicks masbot': [2, 'Rude.'], 'boops masbot': [1, 'boops back!'],
                          'thank you, masbot': [3, 'You\'re welcome!']}
         self.MasBot = {'reaffirm me': self.affirm, 'add affirmation: ': self.add_affirmation}
 
     def res_com(self):
-        self.Commands = {'roll': Dice_Roller.parse, 'test': Test_Module.call, 'tell': self.store_message}
+        self.Commands = {'roll': Dice_Roller.parse, 'test': Test_Module.call, 'tell': self.store_message, 'join': self.join_channel}
 
     def connect(self):
         self.irc_sock.connect((self.irc_host, self.irc_port))
@@ -57,7 +58,9 @@ class IRCServer:
         self.running()
 
     def join_channel(self, channel):
-        self.irc_sock.send(("JOIN {0} \r\n".format(channel)).encode())
+        if channel not in self.irc_channel:
+            self.irc_channel.append(channel.strip())
+        self.irc_sock.send(("JOIN {0} \r\n".format(channel.strip())).encode())
 
     def send_message(self, message):
         if message is not None:
@@ -77,7 +80,6 @@ class IRCServer:
             l[i] = v if '\r\n' not in v[-2:] else v[:-2]
         if 'MasBot' in l:
             l.remove('MasBot')
-        self.UserList[c] = l
 
     def get_info(self, l):
         l = l.split(':', 2)
@@ -139,27 +141,31 @@ class IRCServer:
         connected = True
         while connected:
             line = self.irc_sock.recv(4096)  # receive server messages
+            if ":MasBot MODE MasBot :+im" in line: self.do_work = True
             self.get_info(line)
             self.message_check()
-            if 'PING' in line:  # Call a parsing function
-                self.irc_sock.send('PONG {0}\r\n'.format(line.rstrip().split()[1]))
-            elif self.lFirstWord.lower()[:5] in 'masbot':
-                for key in self.MasBot:
-                    if key in self.lText:
-                        self.MasBot[key]()
-            elif self.command.strip() in self.Commands:
-                self.send_message(self.Commands[self.command.strip()](self.lText.split(' ', 1)[1] if len(self.lText.split(' ', 1)) > 1 else ""))
-            elif self.command == 'reload':
-                self.rel(self.lText)
-            elif '353' in line:
-                self.get_users(line)
-            elif 'JOIN' in line or 'PART' in line:
-                self.get_userlist(self.irc_current_channel)
+            if self.do_work:
+                if 'PING' in line:  # Call a parsing function
+                    self.irc_sock.send('PONG {0}\r\n'.format(line.rstrip().split()[1]))
+                elif self.lFirstWord.lower()[:5] in 'masbot':
+                    for key in self.MasBot:
+                        if key in self.lText:
+                            self.MasBot[key]()
+                elif self.command.strip() in self.Commands:
+                    self.send_message(self.Commands[self.command.strip()](self.lText.split(' ', 1)[1] if len(self.lText.split(' ', 1)) > 1 else ""))
+                elif self.command == 'reload':
+                    self.rel(self.lText)
+                elif '353' in line:
+                    self.get_users(line)
+                elif 'JOIN' in line or 'PART' in line:
+                    print self.irc_current_channel
+                    self.get_userlist(self.irc_current_channel)
+                if len(self.irc_channel) != len(self.UserList):
+                    for c in self.irc_channel:
+                        self.get_userlist(c)
             print ("{0}: {1}".format(self.lName, self.lText) if 'PRIVMSG' in line else line)
             self.choose_response()
-            if len(self.irc_channel) != len(self.UserList):
-                for c in self.irc_channel:
-                    self.get_userlist(c)
+
 
 
 HOST = "irc.sorcery.net"
