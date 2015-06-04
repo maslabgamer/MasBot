@@ -1,4 +1,5 @@
 # 'Samuel'
+import re
 
 def parse_time(t):
     t = str(t).split('.')[0].split(':')
@@ -17,3 +18,10 @@ def parse_time(t):
     if len(time_m) > 0:
         time_m += "and "
     return time_m + "{0} seconds ago.".format((t[2]))
+
+def extract_affirmation(l):
+    m = re.search('add affirmation: "(.+?)"', l)
+    if m:
+        return str(m.group(1))
+    else:
+        return None

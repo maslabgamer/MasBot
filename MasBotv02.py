@@ -10,7 +10,6 @@ import threading
 import sys
 from datetime import datetime
 import mysql.connector
-import re
 import Dice_Roller
 import Test_Module
 import Bot_Functions
@@ -128,16 +127,13 @@ class IRCServer:
         self.send_message('{0}'.format(m))
 
     def add_affirmation(self):
-        m = re.search('add affirmation: "(.+?)"', self.lText)
-        if m:
-            text = str(m.group(1))
-        else:
-            text = None
-            print "Nothing found."
+        text = Bot_Functions.extract_affirmation(self.lText)
         if text is not None:
             db_cursor.execute(add_affirmation, (text,))
             messagesDB.commit()
             self.send_message("New affirmation stored: {0}".format(text))
+        else:
+            print "Nothing found."
 
     def running(self):
         connected = True
