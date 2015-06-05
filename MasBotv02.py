@@ -70,6 +70,7 @@ class IRCServer:
         self.irc_sock.send(("NAMES {0} \r\n".format(c)).encode())
 
     def get_users(self, l):
+        #u = Bot_Functions.get_users(l)
         c = ""
         for chan in self.irc_channel:
             if chan in l.lower():
@@ -80,6 +81,8 @@ class IRCServer:
             l[i] = v if '\r\n' not in v[-2:] else v[:-2]
         if 'MasBot' in l:
             l.remove('MasBot')
+        print "l is {0}".format(l)
+        self.UserList[c] = l
 
     def get_info(self, l):
         l = l.split(':', 2)
@@ -141,7 +144,8 @@ class IRCServer:
         connected = True
         while connected:
             line = self.irc_sock.recv(4096)  # receive server messages
-            if ":MasBot MODE MasBot :+im" in line: self.do_work = True
+            if ":MasBot MODE MasBot :+im" in line:
+                self.do_work = True
             self.get_info(line)
             self.message_check()
             if self.do_work:
@@ -155,18 +159,15 @@ class IRCServer:
                     self.send_message(self.Commands[self.command.strip()](self.lText.split(' ', 1)[1] if len(self.lText.split(' ', 1)) > 1 else ""))
                 elif self.command == 'reload':
                     self.rel(self.lText)
-                elif '353' in line:
-                    self.get_users(line)
-                elif 'JOIN' in line or 'PART' in line:
-                    print self.irc_current_channel
-                    self.get_userlist(self.irc_current_channel)
-                if len(self.irc_channel) != len(self.UserList):
-                    for c in self.irc_channel:
-                        self.get_userlist(c)
+            if '353' in line:
+                self.get_users(line)
+            elif 'JOIN' in line or 'PART' in line:
+                self.get_userlist(self.irc_current_channel)
+            if len(self.irc_channel) != len(self.UserList):
+                for c in self.irc_channel:
+                    self.get_userlist(c)
             print ("{0}: {1}".format(self.lName, self.lText) if 'PRIVMSG' in line else line)
             self.choose_response()
-
-
 
 HOST = "irc.sorcery.net"
 PORT = 6667
