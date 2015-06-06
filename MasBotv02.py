@@ -37,7 +37,7 @@ class IRCServer:
         self.lFirstWord = ""
         self.do_work = False
         self.UserList = {}
-        self.Commands = {'roll': Dice_Roller.parse, 'test': Test_Module.call, 'tell': self.store_message, 'join': self.join_channel}
+        self.Commands = {}
         self.response = {'belgium': [1, 'gasps!'], 'kicks masbot': [2, 'Rude.'], 'boops masbot': [1, 'boops back!'],
                          'thank you, masbot': [3, 'You\'re welcome!']}
         self.MasBot = {'reaffirm me': self.affirm, 'add affirmation: ': self.add_affirmation}
@@ -130,6 +130,7 @@ class IRCServer:
             print "Nothing found."
 
     def running(self):
+        self.res_com()
         connected = True
         while connected:
             line = self.irc_sock.recv(4096)  # receive server messages
@@ -155,6 +156,9 @@ class IRCServer:
             if len(self.irc_channel) != len(self.UserList):
                 for c in self.irc_channel:
                     self.get_userlist(c)
+                for key in self.UserList:
+                    if key not in self.irc_channel:
+                        del(self.UserList[key])
             print ("{0}: {1}".format(self.lName, self.lText) if 'PRIVMSG' in line else line)
             self.choose_response()
 
