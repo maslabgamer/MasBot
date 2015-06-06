@@ -26,9 +26,9 @@ def extract_affirmation(l):
     else:
         return None
 
-def get_users(l):
+def get_users(l, channels):
     c = ""
-    for chan in self.irc_channel:
+    for chan in channels:
         if chan in l.lower():
             c = chan
     l = l.split('353')[1].split(':')[1].split(' ')
@@ -37,4 +37,4 @@ def get_users(l):
         l[i] = v if '\r\n' not in v[-2:] else v[:-2]
     if 'MasBot' in l:
         l.remove('MasBot')
-    return l
+    return c, l

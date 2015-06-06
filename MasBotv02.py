@@ -70,18 +70,7 @@ class IRCServer:
         self.irc_sock.send(("NAMES {0} \r\n".format(c)).encode())
 
     def get_users(self, l):
-        #u = Bot_Functions.get_users(l)
-        c = ""
-        for chan in self.irc_channel:
-            if chan in l.lower():
-                c = chan
-        l = l.split('353')[1].split(':')[1].split(' ')
-        for i, v in enumerate(l):
-            v = v if v[0].isalpha() else v[1:]
-            l[i] = v if '\r\n' not in v[-2:] else v[:-2]
-        if 'MasBot' in l:
-            l.remove('MasBot')
-        print "l is {0}".format(l)
+        c, l = Bot_Functions.get_users(l, self.irc_channel)
         self.UserList[c] = l
 
     def get_info(self, l):
